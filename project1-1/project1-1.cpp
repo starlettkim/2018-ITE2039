@@ -10,7 +10,6 @@
 #define INFILE  "input.txt"
 #define OUTFILE "output.txt"
 
-const int MAX_N = 1e5;
 typedef uint64_t value_t;
 
 using namespace std;
@@ -126,7 +125,7 @@ void quick_sort(value_t * target, int sz) {
 
 int main(int argc, char * argv[]) {
     int N;
-    value_t * v_val = static_cast<value_t *>(malloc(MAX_N * sizeof(value_t)));
+    value_t * v_val = static_cast<value_t *>(malloc(N * sizeof(value_t)));
     FIO fio(INFILE, OUTFILE);
 
     N = fio.read_int<int>();
