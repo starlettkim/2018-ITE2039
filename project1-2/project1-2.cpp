@@ -20,7 +20,7 @@ private:
     unsigned char * w_buf;
 
 public:
-    FIO(const char * in_file, const char * out_file) : r_idx(0), w_idx(0) {
+    FIO(const char * in_file, const char * out_file) : r_idx(0) {
         struct stat status;
 
         // Allocate in_file into memory if it is successfully opened.
@@ -47,7 +47,7 @@ public:
 
     ~FIO() {
         munmap(r_mem, r_sz);
-        free(w_buf);
+        delete w_buf;
         close(ifd);
         close(ofd);
     }
@@ -80,12 +80,10 @@ public:
             w_buf[128 - ++idx] = val % 10 + '0';
             val /= 10;
         }
-        write(STDOUT_FILENO, w_buf + 128 - idx, sizeof(unsigned char) * idx);
         write(ofd, w_buf + 128 - idx, sizeof(unsigned char) * idx);
     }
 
     void write_char(char c) {
-        write(STDOUT_FILENO, &c, sizeof(char));
         write(ofd, &c, sizeof(char));
     }
 
@@ -103,31 +101,58 @@ private:
 
 template <typename T>
 struct MinHeap {
+private:
     T * arr;
     int cap, sz;
 
+public:
     MinHeap(int cap) : cap(cap), sz(0) {
         arr = new T[cap + 1];
-        
     }
 
     ~MinHeap() {
-        free(arr);
+        delete arr;
     }
 
     T extract_min(void) {
-        
+        T min_val = arr[1];
+        T last_val = arr[sz--];
+        int i, child;
+        for (i = 1; i * 2 <= sz; i = child) {
+            child = i * 2;
+            if (child < sz && arr[child + 1] < arr[child]) {
+                child++;
+            }
+            if (arr[child] < last_val) {
+                arr[i] = arr[child];
+            } else break;
+        }
+        arr[i] = last_val;
+        return min_val;
     }
     
-    void insert(T value) {
+    void insert(T val) {
         if (sz == cap) return;
         int i;
-        for (i = ++sz; i > 1 && arr[i / 2] < value; i /= 2) {
+        for (i = ++sz; i > 1 && val < arr[i / 2]; i /= 2) {
             arr[i] = arr[i / 2];
         }
-        arr[i] = value;
+        arr[i] = val;
+    }
+
+    bool empty() {
+        return !sz;
     }
 };
+
+struct Pair {
+    value_t val;
+    int file_no;
+};
+
+bool operator < (const Pair & lhs, const Pair & rhs) {
+    return lhs.val < rhs.val;
+}
 
 int main() {
     char * ifn = new char[20];
@@ -140,20 +165,31 @@ int main() {
     int N = in->read_int<int>();
     int M = in->read_int<int>();
     int K = in->read_int<int>();
-    value_t ** arr = new value_t* [N];
-
+    
+    // Need to be commented....
+    MinHeap<Pair> heap(N);
+    FIO ** files = new FIO *[N];
+    int * n_read = new int[N];
     for (int i = 0; i < N; i++) {
-        arr[i] = new value_t[M];
-        free(in);
         sprintf(ifn, "input%d.txt", i + 1);
-        in = new FIO(ifn, NULL);
+        files[i] = new FIO(ifn, NULL);
+        heap.insert({ files[i]->read_int<value_t>(), i });
+        n_read[i]++;
+    }
 
-        for (int j = 0; j < M; j++) {
-            arr[i][j] = in->read_int<value_t>();
+    while (!heap.empty()) {
+        for (int i = 0; i < K; i++) {
+            if (!heap.empty()) {
+                auto poped = heap.extract_min();
+                if (n_read[poped.file_no]++ < M)
+                    heap.insert({ files[poped.file_no]->read_int<value_t>(), poped.file_no });
+                if (i == K - 1) {
+                    out->write_int(poped.val);
+                    out->write_char(' ');
+                }
+            }
         }
     }
-    free(in);
-    
-    return 0;
 
+    return 0;
 }
