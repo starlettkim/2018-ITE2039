@@ -39,6 +39,8 @@ public:
             );
         }
 
+        w_buf = new unsigned char[128];
+
         // TODO: Allocate out_file into memory if it is successfully opened.
         if ((ofd = open(out_file, O_WRONLY | O_CREAT | O_TRUNC, 0644)) >= 0) {
             // fstat(ifd, &status);
@@ -47,7 +49,7 @@ public:
 
     ~FIO() {
         munmap(r_mem, r_sz);
-        delete w_buf;
+        delete[] w_buf;
         close(ifd);
         close(ofd);
     }
@@ -73,7 +75,6 @@ public:
             write(ofd, "-", 1);
             val *= -1;
         }
-        w_buf = new unsigned char[128];
         int idx = 0;
         
         while (val) {
@@ -114,7 +115,7 @@ public:
         delete arr;
     }
 
-    T extract_min(void) {
+    T pop(void) {
         T min_val = arr[1];
         T last_val = arr[sz--];
         int i, child;
@@ -165,31 +166,39 @@ int main() {
     int N = in->read_int<int>();
     int M = in->read_int<int>();
     int K = in->read_int<int>();
+
+    delete in;
     
-    // Need to be commented....
     MinHeap<Pair> heap(N);
-    FIO ** files = new FIO *[N];
-    int * n_read = new int[N];
+    FIO ** files = new FIO *[N];    // FIO array for input files.
+    int * n_read = new int[N];      // number of values read from file.
     for (int i = 0; i < N; i++) {
         sprintf(ifn, "input%d.txt", i + 1);
         files[i] = new FIO(ifn, NULL);
-        heap.insert({ files[i]->read_int<value_t>(), i });
+        value_t first_value = files[i]->read_int<value_t>();
+        heap.insert({ first_value, i });
         n_read[i]++;
     }
 
     while (!heap.empty()) {
-        for (int i = 0; i < K; i++) {
+        for (int i = 1; i <= K; i++) {
             if (!heap.empty()) {
-                auto poped = heap.extract_min();
-                if (n_read[poped.file_no]++ < M)
-                    heap.insert({ files[poped.file_no]->read_int<value_t>(), poped.file_no });
-                if (i == K - 1) {
+                auto poped = heap.pop();
+                if (n_read[poped.file_no]++ < M) {      // Read next value.
+                    value_t nxt_value = files[poped.file_no]->read_int<value_t>();
+                    heap.insert({ nxt_value, poped.file_no });
+                } else delete files[poped.file_no];     // Nothing left to read.
+
+                if (i == K) {   // Write every K-th value to output file.
                     out->write_int(poped.val);
                     out->write_char(' ');
-                }
+                } // else do nothing
             }
         }
     }
+
+    delete[] files;
+    delete[] n_read;
 
     return 0;
 }
