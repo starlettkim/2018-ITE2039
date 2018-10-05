@@ -112,7 +112,7 @@ public:
     }
 
     ~MinHeap() {
-        delete arr;
+        delete[] arr;
     }
 
     T pop(void) {
