@@ -1,5 +1,8 @@
 **.dSYM/
 **/.DS_Store
-**.out
-**.json
 .vscode
+project1-1/output.txt
+project1-1/project1-1
+project1-1/project1-1.o
+project1-2/project1-2
+project1-2/project1-2.o
