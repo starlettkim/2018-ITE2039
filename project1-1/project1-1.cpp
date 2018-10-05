@@ -125,10 +125,10 @@ void quick_sort(value_t * target, int sz) {
 
 int main(int argc, char * argv[]) {
     int N;
-    value_t * v_val = static_cast<value_t *>(malloc(N * sizeof(value_t)));
     FIO fio(INFILE, OUTFILE);
 
     N = fio.read_int<int>();
+    value_t * v_val = static_cast<value_t *>(malloc(N * sizeof(value_t)));
     for (int i = 0; i < N; i++)
         v_val[i] = fio.read_int<value_t>();
 
