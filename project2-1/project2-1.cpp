@@ -7,8 +7,8 @@
 
 using namespace std;
 
-using key_t = uint64_t;
-using val_t = uint64_t;
+using _key_t = uint64_t;
+using _val_t = uint64_t;
 
 // Struct for fast I/O.
 struct FIO {
@@ -56,8 +56,8 @@ public:
     }
 
     template <typename T>
-    inline T read_int() {
-        T ret = 0;
+    inline void read_int(T & val) {
+        val = 0;
         bool neg = 0;
         consume_whitespace();
         if (r_mem[r_idx] == '-') {
@@ -65,9 +65,9 @@ public:
             r_idx++;
         }
         while (r_idx < r_sz && !is_whitespace()) {
-            ret = ret * 10 + r_mem[r_idx++] - '0';
+            val = val * 10 + r_mem[r_idx++] - '0';
         }
-        return neg ? -ret : ret;
+        if (neg) val *= -1;
     }
 
     inline char read_char() {
@@ -82,22 +82,23 @@ public:
             neg = 1;
             val *= -1;
         }
-        int idx = 126;
-        w_buf[127] = 0;
+        int idx = 127;
         while (val) {
             w_buf[idx--] = val % 10 + '0';
             val /= 10;
         }
         if (neg) w_buf[idx--] = '-';
-        write(w_buf + idx + 1);
+        write(w_buf + idx + 1, 127 - idx);
     }
 
-    void write(const char * str) {
-        ::write(ofd, str, strlen(str));
+    void write(const char * str, int len) {
+        ::write(ofd, str, len);
+        fsync(ofd);
     }
 
     void write(char c) {
         ::write(ofd, &c, sizeof(char));
+        fsync(ofd);
     }
 
 private:
@@ -112,18 +113,116 @@ private:
     }
 };
 
-int main(int argc, char * argv[]) {
+struct Record {
+    bool is_up;
+    _key_t key;
+    _val_t val;
+};
+
+struct Hash {
+    Hash(int sz) : sz(sz) {
+        records = new Record[sz];
+    }
+
+    ~Hash() { delete[] records; }
+
+    void _insert(_key_t key, _val_t val) {
+        for (int i = 0; i < sz; i++) {
+            int idx = run_hash(key, i);
+            if (records[idx].is_up && records[idx].key == key) {
+                records[idx].val = val;
+                throw "Duplicated\n";
+            }
+            if (!records[idx].is_up) {
+                records[idx].is_up = true;
+                records[idx].key = key;
+                records[idx].val = val;
+                return;
+            }
+        }
+        throw "Full\n";
+    }
+    
+    void _delete(_key_t key) {
+        for (int i = 0; i < sz; i++) {
+            int idx = run_hash(key, i);
+            if (records[idx].is_up && records[idx].key == key) {
+                records[idx].is_up = false;
+                return;
+            }
+            if (!records[idx].is_up) {
+                throw "Not Found\n";
+            }
+        }
+        throw "Not Found\n";
+    }
+
+    _val_t _find(_key_t key) {
+        for (int i = 0; i < sz; i++) {
+            int idx = run_hash(key, i);
+            if (records[idx].is_up && records[idx].key == key) {
+                return records[idx].val;
+            }
+            if (!records[idx].is_up) {
+                throw "Not Found\n";
+            }
+        }
+        throw "Not Found\n";
+    }
+
+    void _print() {
+
+    }
+
+private:
+    int sz;
+    Record * records;
+    int run_hash(_key_t key, int trial = 0) {
+        return (key + trial) % sz;
+    }
+
+};
+
+int main(int argc, const char * argv[]) {
+    if (argc < 2) argv[1] = "input.txt";
     FIO fio(argv[1], "output.txt");
-    int N = fio.read_int<int>();
-    while (N--) {
+    int N;
+    fio.read_int(N);
+    Hash hash(3 * N);
+    _key_t key;
+    _val_t val;
+    while (true) {
         char ctrl = fio.read_char();
         if        (ctrl == 'I') {
+            try {
+                fio.read_int(key);
+                fio.read_int(val);
+                hash._insert(key, val);
+                fio.write("Inserted\n", 9);
+            } catch (const char * err) {
+                fio.write(err, strlen(err));
+            }
 
         } else if (ctrl == 'D') {
+            try {
+                fio.read_int(key);
+                hash._delete(key);
+                fio.write("Deleted\n", 8);
+            } catch (const char * err) {
+                fio.write(err, strlen(err));
+            }
 
         } else if (ctrl == 'F') {
+            try {
+                fio.read_int(key);
+                val = hash._find(key);
+                fio.write_int(val);
+                fio.write('\n');
+            } catch (const char * err) {
+                fio.write(err, strlen(err));
+            }
 
-        }
+        } else break;
     }
 
     return 0;
