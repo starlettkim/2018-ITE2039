@@ -139,6 +139,7 @@ struct Hash {
                 records[idx].val = val;
                 return;
             }
+            num_collision++;
         }
         throw "Full\n";
     }
@@ -171,7 +172,14 @@ struct Hash {
     }
 
     void _print() {
-
+        printf("Existing keys: \n");
+        printf("idx / key / val\n");
+        for (int i = 0; i < sz; i++) {
+            if (records[i].is_up)
+                printf("%3d   %3llu   %3llu\n", i, records[i].key, records[i].val);
+        }
+        printf("=====\n");
+        printf("Number of collisions: %d\n", num_collision);
     }
 
 private:
@@ -180,7 +188,7 @@ private:
     int run_hash(_key_t key, int trial = 0) {
         return (key + trial) % sz;
     }
-
+    int num_collision = 0;
 };
 
 int main(int argc, const char * argv[]) {
@@ -222,6 +230,8 @@ int main(int argc, const char * argv[]) {
                 fio.write(err, strlen(err));
             }
 
+        } else if (ctrl == 'P') {
+            hash._print();
         } else break;
     }
 
