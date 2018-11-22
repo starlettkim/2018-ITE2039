@@ -131,7 +131,7 @@ void printTree() {
 }
 
 int main(int argc, char * argv[]) {
-    ifp = fopen((argc == 1 ? "input_small.txt" : argv[1]), "r");
+    ifp = fopen((argc == 1 ? "input.txt" : argv[1]), "r");
     ofp = fopen("output.txt", "w");
 
     char cmd;
