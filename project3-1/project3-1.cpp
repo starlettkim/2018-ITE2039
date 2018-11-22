@@ -138,7 +138,6 @@ int main(int argc, char * argv[]) {
     key_t key;
     val_t val;
 
-    fscanf(ifp, "%llu", &key);
     while (fscanf(ifp, " %c", &cmd), cmd != 'Q') {
         switch (cmd) {
         case 'I': 
