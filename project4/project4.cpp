@@ -3,51 +3,66 @@
 #include <cassert>
 #include <vector>
 
-typedef unsigned long long ull;
+using ull   = unsigned long long;
+using vtx_t = int;
+using edg_t = int;
+using dis_t = int;
+
+const vtx_t MAX_VTX_NUM   = 1e7;
+const int   MAX_QUERY_NUM = 100;
+
+vector< pair< vtx_t, dis_t > > g_graph[MAX_VTX_NUM];
+dis_t g_result[MAX_QUERY_NUM];
 
 using namespace std;
 
-uint64_t g_V;    // number of vertices
-uint64_t g_E;    // number of edges
+dis_t run_dijkstra(vtx_t st) {
 
-vector< vector< pair< uint64_t, uint64_t > > > g_graph;
-// g_graph[edge_no][i] = {connected_edge_no, distance}
+}
 
-void find_shortest_distance(vector< uint64_t > & target_vertices) {
-    
+void find_shortest_distance(vector< vtx_t > target_vertices) {
+    dis_t min_distance;
+
 }
 
 int main(int argc, char * argv[]) {
+    // Open input file.
     ifstream ifs(( argc == 1 ? "input.txt" : argv[1] ), ifstream::in);
     ofstream ofs("output.txt", ofstream::out);
     assert(ifs.good() && ofs.good());
 
-    ifs >> g_V >> g_E;
-    g_graph.resize(g_V);
+    // Construct an adjacent list.
+    vtx_t num_vertices;
+    edg_t num_edges;
+    ifs >> num_vertices >> num_edges;
 
-    for (int i = 0; i < g_E; i++) {
-        uint64_t v1, v2, d;
+    while (num_edges--) {
+        vtx_t v1, v2;
+        dis_t d;
         ifs >> v1 >> v2 >> d;
-        g_graph[v1 - 1].push_back({ v2 - 1, d });
-        g_graph[v2 - 1].push_back({ v1 - 1, d });
+        g_graph[v1].push_back({ v2, d });
+        g_graph[v2].push_back({ v1, d });
     }
 
+    // Parallel query execution
     vector< thread > threads;
-    uint64_t P;
-
+    int P;      // Number of problems <= 100
     ifs >> P;
     while (P--) {
-        uint64_t N;
-        vector< uint64_t > target_vertices;
+        int N;      // Number of houses <= 64
         ifs >> N;
+        vector< vtx_t > target_vertices;
         target_vertices.resize(N);
         for (int i = 0; i < N; i++) {
             ifs >> target_vertices[i];
         }
         threads.push_back(thread(find_shortest_distance, target_vertices));
     }
-    // 1. Dijkstra
-    // 2. Floyd-Warshall
+
+    // Collect results.
+    for (auto & thr : threads) {
+        thr.join();
+    }
 
     return 0;
 }
