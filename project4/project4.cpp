@@ -13,7 +13,7 @@ using vtx_t = int;
 using edg_t = unsigned int;
 using dis_t = unsigned int;
 
-const vtx_t MAX_VTX_NUM   = 4e4;
+const vtx_t MAX_VTX_NUM   = 1e7;
 const dis_t INF           = 2e9 + 1;
 
 
@@ -23,7 +23,7 @@ vtx_t g_num_vertices;
 edg_t g_num_edges;
 
 
-void run_dijkstra(dis_t & ret, vtx_t st, vector< bool > & chk) {
+void run_dijkstra(dis_t * ret, vtx_t st, vector< bool > & chk) {
     vector< dis_t > distance(g_num_vertices, INF);
     using p_dv = pair< dis_t, vtx_t >;
     priority_queue< p_dv, vector< p_dv >, greater< p_dv > > pq;
@@ -40,10 +40,10 @@ void run_dijkstra(dis_t & ret, vtx_t st, vector< bool > & chk) {
         pq.pop();
         // Found another target vertex. Update the result.
         if (now_vtx != st && chk[now_vtx]) {
-            ret = now_dis;
+            *ret = now_dis;
             return;
         // If we already have better result, no more work needed.
-        } else if (ret <= now_dis) {
+        } else if (*ret <= now_dis) {
             return;
         }
 
@@ -59,7 +59,7 @@ void run_dijkstra(dis_t & ret, vtx_t st, vector< bool > & chk) {
     }
 }
 
-void find_shortest_distance(dis_t & ret, vector< vtx_t > target_vertices) {
+void find_shortest_distance(dis_t * ret, vector< vtx_t > target_vertices) {
     vector< bool > chk;     // Check whether it is a target vertex(house).
     chk.resize(g_num_vertices);
     for (vtx_t v : target_vertices) {
@@ -87,28 +87,24 @@ int main(int argc, char * argv[]) {
     }
     
     // Parallel query execution
-    // vector< thread > threads;
+    vector< thread > threads;
     int P;      // Number of problems <= MAX_QUERY_NUM
     int N;      // Number of houses <= 64
     ifs >> P;
-    dis_t result[P];
-    fill(result, result+ P, INF);
-    // vector< dis_t >  result(P, INF);
+    vector< dis_t > result(P, INF);
     for (int i = 0; i < P; i++) {
         ifs >> N;
         vector< vtx_t > target_vertices(N);
         for (int j = 0; j < N; j++) {
             ifs >> target_vertices[j];
         }
-        find_shortest_distance(result[i], target_vertices);
-        // threads.push_back(thread(find_shortest_distance, &result[i], target_vertices));
+        threads.push_back(thread(find_shortest_distance, &result[i], target_vertices));
     }
     
     // Collect results.
-    // for (auto & thr : threads) {
-    //     thr.join();
-    // }
-    cout << result[0] << endl;
+    for (auto & thr : threads) {
+        thr.join();
+    }
     for (int i = 0; i < P; i++) {
         ofs << result[i] << '\n';
     }
