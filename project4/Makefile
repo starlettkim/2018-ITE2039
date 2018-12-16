@@ -1,6 +1,6 @@
 # Compiler and Compile options.
 CC = g++ 
-CXXFLAGS = -g -Wall -std=c++14
+CXXFLAGS = -O3 -Wall -std=c++14
 
 # Macros specifying path for compile.
 SRCS := project4.cpp
