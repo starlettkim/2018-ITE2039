@@ -68,7 +68,7 @@ void run_dijkstra(dis_t * ret, vtx_t st, bool * is_target) {
 void find_shortest_distance(dis_t * ret, vector< vtx_t > target_vertices) {
     bool * is_target = new bool[g_num_vertices];
     for (vtx_t v : target_vertices) {
-        target_vertices[v] = true;
+        is_target[v] = true;
     }
     for (vtx_t v : target_vertices) {
         run_dijkstra(ret, v, is_target);
