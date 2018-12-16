@@ -1,6 +1,5 @@
 #include <fstream>
 #include <thread>
-#include <cassert>
 #include <vector>
 #include <queue>
 #include <functional>
@@ -39,17 +38,17 @@ void run_dijkstra(dis_t * ret, vtx_t st, bool * is_target) {
         vtx_t now_vtx = pq.top().second;
         pq.pop();
 
+        // If we already have better result, no more work needed.
+        if (*ret <= now_dis) {
+            return;
+        } else if (is_target[now_vtx] && now_vtx != st) {
+            *ret = now_dis;
+            return;
+        }
+
         // Check if this vertex is already visited.
         if (distance[now_vtx] < now_dis) {
             continue;
-        }
-        // Found another target vertex. Update the result and return.
-        if (now_vtx != st && is_target[now_vtx]) {
-            *ret = now_dis;
-            return;
-        // If we already have better result, no more work needed.
-        } else if (*ret <= now_dis) {
-            return;
         }
 
         // Proceed.
@@ -70,6 +69,7 @@ void find_shortest_distance(dis_t * ret, vector< vtx_t > target_vertices) {
     for (vtx_t v : target_vertices) {
         is_target[v] = true;
     }
+    *ret = INF;
     for (vtx_t v : target_vertices) {
         run_dijkstra(ret, v, is_target);
     }
@@ -79,7 +79,6 @@ int main(int argc, char * argv[]) {
     // Open input file.
     ifstream ifs(( argc == 1 ? "input.txt" : argv[1] ), ifstream::in);
     ofstream ofs("output.txt", ofstream::out);
-    assert(ifs.good() && ofs.good());
 
     // Construct an adjacent list.
     ifs >> g_num_vertices >> g_num_edges;
@@ -100,7 +99,6 @@ int main(int argc, char * argv[]) {
     ifs >> P;
     threads = new thread[P];
     result  = new dis_t[P];
-    fill(result, result + P, INF);
     for (int i = 0; i < P; i++) {
         ifs >> N;
         vector< vtx_t > target_vertices(N);
