@@ -39,10 +39,10 @@ void run_dijkstra(dis_t * ret, vtx_t st, bool * is_target) {
         vtx_t now_vtx = pq.top().second;
         pq.pop();
 
-        // Already visited this vertex.
-        // if (chk[now_vtx] == 2) {
-        //     continue;
-        // }
+        // Check if this vertex is already visited.
+        if (distance[now_vtx] < now_dis) {
+            continue;
+        }
         // Found another target vertex. Update the result and return.
         if (now_vtx != st && is_target[now_vtx]) {
             *ret = now_dis;
