@@ -18,7 +18,7 @@ const vtx_t MAX_VTX_NUM   = 1e7;
 const dis_t INF           = 2e9 + 1;
 
 
-vector< p_dv > * g_graph;
+vector< p_dv > g_graph[MAX_VTX_NUM];
 
 vtx_t g_num_vertices;
 edg_t g_num_edges;
@@ -87,7 +87,6 @@ int main(int argc, char * argv[]) {
 
     // Construct an adjacent list.
     ifs >> g_num_vertices >> g_num_edges;
-    g_graph = new vector< p_dv >[g_num_vertices];
     for (int i = 0; i < g_num_edges; i++) {
         vtx_t v1, v2;
         dis_t d;
@@ -103,8 +102,8 @@ int main(int argc, char * argv[]) {
     int      N;      // Number of houses <= 64
 
     ifs >> P;
-    threads = new thread[P];
-    result  = new dis_t[P];
+    threads = new thread[100];
+    result  = new dis_t[100];
     for (int i = 0; i < P; i++) {
         ifs >> N;
         vector< vtx_t > target_vertices(N);
@@ -122,7 +121,6 @@ int main(int argc, char * argv[]) {
         ofs << result[i] << '\n';
     }
 
-    delete[] g_graph;
     delete[] threads;
     delete[] result;
 
