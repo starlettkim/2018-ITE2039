@@ -24,7 +24,7 @@ vtx_t g_num_vertices;
 edg_t g_num_edges;
 
 
-void run_dijkstra(dis_t * ret, vtx_t st, bool * is_target, dis_t * distance) {
+inline void run_dijkstra(dis_t * ret, vtx_t st, const bool * is_target, dis_t * distance) {
     priority_queue< p_dv, vector< p_dv >, greater< p_dv > > pq;
 
     // Initialize
@@ -66,7 +66,7 @@ void run_dijkstra(dis_t * ret, vtx_t st, bool * is_target, dis_t * distance) {
 }
 
 void find_shortest_distance(dis_t * ret, vector< vtx_t > target_vertices) {
-    bool *  is_target = new bool[g_num_vertices];
+    bool *  is_target = new bool[g_num_vertices]();
     dis_t * distance  = new dis_t[g_num_vertices];
     for (vtx_t v : target_vertices) {
         is_target[v] = true;
@@ -77,7 +77,7 @@ void find_shortest_distance(dis_t * ret, vector< vtx_t > target_vertices) {
         run_dijkstra(ret, v, is_target, distance);
     }
     delete[] distance;
-    // delete[] is_target;  <-- Makes wrong answer! Why????
+    delete[] is_target;
 }
 
 int main(int argc, char * argv[]) {
