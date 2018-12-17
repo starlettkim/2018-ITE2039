@@ -9,7 +9,7 @@ OBJS := $(SRCS:.cpp=.o)
 # Compile command.
 TARGET = project4
 $(TARGET): $(OBJS)
-	$(CC) $(CXXFLAGS) -o $(TARGET) $(OBJS)
+	$(CC) $(CXXFLAGS) -o $(TARGET) $(OBJS) -lpthread
 
 # Delete binary & object files.
 clean:
