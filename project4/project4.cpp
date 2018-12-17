@@ -17,19 +17,17 @@ const vtx_t MAX_VTX_NUM   = 1e7;
 const dis_t INF           = 2e9 + 1;
 
 
-vector< p_dv > g_graph[MAX_VTX_NUM];
+vector< p_dv > * g_graph;
 
 vtx_t g_num_vertices;
 edg_t g_num_edges;
 
 
-void run_dijkstra(dis_t * ret, vtx_t st, bool * is_target) {
-    vector< dis_t > distance(g_num_vertices, INF);
+void run_dijkstra(dis_t * ret, vtx_t st, bool * is_target, dis_t * distance) {
     priority_queue< p_dv, vector< p_dv >, greater< p_dv > > pq;
 
     // Initialize
     pq.push({ 0, st });
-    distance[st] = 0;
 
     // Main loop
     while (!pq.empty()) {
@@ -41,7 +39,9 @@ void run_dijkstra(dis_t * ret, vtx_t st, bool * is_target) {
         // If we already have better result, no more work needed.
         if (*ret <= now_dis) {
             return;
-        } else if (is_target[now_vtx] && now_vtx != st) {
+        }
+        // Found target with better result.
+        else if (is_target[now_vtx] && now_vtx != st) {
             *ret = now_dis;
             return;
         }
@@ -50,13 +50,12 @@ void run_dijkstra(dis_t * ret, vtx_t st, bool * is_target) {
         if (distance[now_vtx] < now_dis) {
             continue;
         }
-
         // Proceed.
-        // chk[now_vtx] = 2;
         for (auto i : g_graph[now_vtx]) {
             dis_t nxt_edg = i.first;
             vtx_t nxt_vtx = i.second;
-            if (distance[nxt_vtx] > now_dis + nxt_edg) {
+            #define IS_INF(VTX) ((VTX) != st && !distance[(VTX)])
+            if (distance[nxt_vtx] > now_dis + nxt_edg || IS_INF(nxt_vtx)) {
                 distance[nxt_vtx] = now_dis + nxt_edg;
                 pq.push({ distance[nxt_vtx], nxt_vtx });
             }
@@ -65,14 +64,18 @@ void run_dijkstra(dis_t * ret, vtx_t st, bool * is_target) {
 }
 
 void find_shortest_distance(dis_t * ret, vector< vtx_t > target_vertices) {
-    bool * is_target = new bool[g_num_vertices];
+    bool *  is_target = new bool[g_num_vertices];
+    dis_t * distance  = new dis_t[g_num_vertices];
     for (vtx_t v : target_vertices) {
         is_target[v] = true;
     }
     *ret = INF;
     for (vtx_t v : target_vertices) {
-        run_dijkstra(ret, v, is_target);
+        memset(distance, 0, sizeof(dis_t) * g_num_vertices);
+        run_dijkstra(ret, v, is_target, distance);
     }
+    delete[] distance;
+    // delete[] is_target;  <-- Makes wrong answer! Why????
 }
 
 int main(int argc, char * argv[]) {
@@ -82,6 +85,7 @@ int main(int argc, char * argv[]) {
 
     // Construct an adjacent list.
     ifs >> g_num_vertices >> g_num_edges;
+    g_graph = new vector< p_dv >[g_num_vertices];
     for (int i = 0; i < g_num_edges; i++) {
         vtx_t v1, v2;
         dis_t d;
@@ -115,6 +119,10 @@ int main(int argc, char * argv[]) {
     for (int i = 0; i < P; i++) {
         ofs << result[i] << '\n';
     }
+
+    delete[] g_graph;
+    delete[] threads;
+    delete[] result;
 
     return 0;
 }
