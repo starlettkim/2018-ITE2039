@@ -4,6 +4,7 @@
 #include <queue>
 #include <functional>
 #include <iostream>
+#include <cstring>
 
 using namespace std;
 
@@ -59,6 +60,7 @@ void run_dijkstra(dis_t * ret, vtx_t st, bool * is_target, dis_t * distance) {
                 distance[nxt_vtx] = now_dis + nxt_edg;
                 pq.push({ distance[nxt_vtx], nxt_vtx });
             }
+            #undef IS_INF
         }
     }
 }
